@@ -14,7 +14,16 @@ img = Image.open("tile.png").convert('RGBA')
 # could use any other image too:
 #img = Image.open("/Users/david/Dropbox/Photos/20150301 - Tahoe/anthonys_camera/20150301_142558.jpg").convert('RGBA')
 
-arr = np.array(img)
+# We'll want an option for black-and-white. One way to achieve this is to convert image to monochrome and then back to RGBA:
+img_bw = img.convert('L')
+img_bw.save("bw.png")
+img_bw_rgba = img_bw.convert("RGBA")
+
+arr = np.array(img_bw_rgba)
+
+print(arr.shape)
+print(arr)
+
 image_2d = np.empty(arr.shape[0:2], dtype=np.uint32)
 view = image_2d.view(dtype=np.uint8).reshape(arr.shape)
 for i in range(arr.shape[0]):

@@ -53,6 +53,9 @@ if __name__=='__main__':
     bbox = BoundingBox(10,20,30,40) # this is the wrong bounding box for this tile
     img = Image.open("images/tile.png").convert('RGBA')
     maparea = MapArea(img, bbox)
-    p = figure()
+
+    # If nothing else, we can use x_range and y_range, width, and height, to get the right aspect ratio
+    p = figure(tools = "pan, box_zoom, reset, wheel_zoom", width=500, height=200, x_range=[bbox.min_lon, bbox.max_lon],
+               y_range = [bbox.min_lat,bbox.max_lat])
     add_maparea_to_plot(p, maparea)
     show(p)

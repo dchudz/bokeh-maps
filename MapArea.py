@@ -43,7 +43,6 @@ class MapTile(MapArea):
         self.range_lat = self.max_lat - self.min_lat
 
 
-
 def get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com/toner/{0}/{1}/{2}.{3}"):
     url = url_format.format(zoom, x, y, file_extension)
     print(url)
@@ -52,6 +51,7 @@ def get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com
         image = Image.open(response_io).convert("RGBA") # in watercolor example jpg image was RGB. Convert all to RGBA so we're dealing w/ a standard array shape
     return MapTile(image, x, y, zoom)
 
+
 def get_stamen_maptile(x, y, zoom, type = "watercolor", file_extension = "jpg"):
     # TODO: make it convenient to access other stamen tile types
     return get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com/watercolor/{0}/{1}/{2}.{3}")
@@ -59,7 +59,7 @@ def get_stamen_maptile(x, y, zoom, type = "watercolor", file_extension = "jpg"):
 def get_google_maptile(x, y, zoom):
     return get_maptile(x, y, zoom, "", url_format="http://mt0.google.com/vt/lyrs=m@169000000&hl=en&x={1}&y={2}&z={0}&s=Ga")
 
-
+# adapted from XYtoLatLon in ggmap package
 def tileaddress_to_lonlat(tileaddress_x, tileaddress_y, zoom):
     n = 2**zoom
     lon = tileaddress_x / n * 360.0 - 180.0
@@ -94,6 +94,8 @@ if __name__=='__main__':
     img = Image.open("images/tile.jpg").convert('RGBA')
     arr = np.array(img)
     print(arr.shape)
+    print(maparea2.min_lon)
+    print(maparea2.max_lon)
 
     # tile = get_stamen_maptile(7700, 13550, 15, "png")
     #

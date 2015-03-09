@@ -5,7 +5,6 @@ from PIL import Image
 import numpy as np
 
 
-
 # Convert a map to an array:
 # manipulate the array so the map looks right
 # tile image from: https://a.tiles.mapbox.com/v4/examples.map-i86l3621/0/0/0.png?access_token=pk.eyJ1IjoidHJpc3RlbiIsImEiOiJuZ2E5MG5BIn0.39lpfFC5Nxyqck1qbTNquQ

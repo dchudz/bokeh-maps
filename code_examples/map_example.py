@@ -39,7 +39,7 @@ convert_lat_lon_to_x_y(list(world_capitals.lon_numerical), list(world_capitals.l
 img = Image.open("tile.png").convert('RGBA')
 
 arr = np.array(img)
-=======
+
 # could use any other image too:
 #img = Image.open("/Users/david/Dropbox/Photos/20150301 - Tahoe/anthonys_camera/20150301_142558.jpg").convert('RGBA')
 

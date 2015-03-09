@@ -32,7 +32,6 @@ def convert_lat_lon_to_x_y(lon, lat):
 convert_lat_lon_to_x_y(list(world_capitals.lon_numerical), list(world_capitals.lat_numerical))
 
 
-
 # Convert a map to an array:
 # manipulate the array so the map looks right
 # tile image from: https://a.tiles.mapbox.com/v4/examples.map-i86l3621/0/0/0.png?access_token=pk.eyJ1IjoidHJpc3RlbiIsImEiOiJuZ2E5MG5BIn0.39lpfFC5Nxyqck1qbTNquQ
@@ -40,6 +39,17 @@ convert_lat_lon_to_x_y(list(world_capitals.lon_numerical), list(world_capitals.l
 img = Image.open("tile.png").convert('RGBA')
 
 arr = np.array(img)
+=======
+# could use any other image too:
+#img = Image.open("/Users/david/Dropbox/Photos/20150301 - Tahoe/anthonys_camera/20150301_142558.jpg").convert('RGBA')
+
+# We'll want an option for black-and-white. One way to achieve this is to convert image to monochrome and then back to RGBA:
+img_bw = img.convert('L')
+img_bw.save("bw.png")
+img_bw_rgba = img_bw.convert("RGBA")
+
+arr = np.array(img_bw_rgba)
+
 image_2d = np.empty(arr.shape[0:2], dtype=np.uint32)
 view = image_2d.view(dtype=np.uint8).reshape(arr.shape)
 for i in range(arr.shape[0]):

@@ -15,7 +15,6 @@ class MapArea:
 
 
 def rgba_to_array2d(image):
-    # TODO: I think this doesn't work for JPEG images
     arr = np.array(image)
     image_2d = np.empty(arr.shape[0:2], dtype=np.uint32)
     view = image_2d.view(dtype=np.uint8).reshape(arr.shape)
@@ -50,11 +49,12 @@ def get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com
     print(url)
     response = requests.get(url)
     with io.BytesIO(response.content) as response_io:
-        image = Image.open(response_io)
-        pixels = image.load()
-    image.save("tmp.jpg")
+        image = Image.open(response_io).convert("RGBA") # in watercolor example jpg image was RGB. Convert all to RGBA so we're dealing w/ a standard array shape
     return MapTile(image, x, y, zoom)
 
+def get_stamen_maptile(x, y, zoom, type = "watercolor", file_extension = "jpg"):
+    # TODO: make it convenient to access other stamen tile types
+    return get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com/watercolor/{0}/{1}/{2}.{3}")
 
 def get_google_maptile(x, y, zoom):
     return get_maptile(x, y, zoom, "", url_format="http://mt0.google.com/vt/lyrs=m@169000000&hl=en&x={1}&y={2}&z={0}&s=Ga")
@@ -83,15 +83,23 @@ def tileaddress_to_lonlat(tileaddress_x, tileaddress_y, zoom):
 
 if __name__=='__main__':
     output_file("png_to_bokeh_image.html")
-    maparea = get_maptile(7700, 13550, 15, "png")
-    print(maparea.range_lon, maparea.range_lat)
+    maparea1 = get_stamen_maptile(7700, 13550, 15, "png")
+    maparea2 = get_stamen_maptile(7700, 13551, 15, "png")
     p = figure(tools = "pan, box_zoom, reset, wheel_zoom", width=500, height=500,
-               x_range=[maparea.min_lon, maparea.max_lon],
-               y_range = [maparea.min_lat,maparea.max_lat])
-    add_maparea_to_plot(p, maparea)
+               x_range=[maparea1.min_lon, maparea1.max_lon],
+               y_range = [maparea1.min_lat,maparea1.max_lat])
+    add_maparea_to_plot(p, maparea1)
+    add_maparea_to_plot(p, maparea2)
     show(p)
+    img = Image.open("images/tile.jpg").convert('RGBA')
+    arr = np.array(img)
+    print(arr.shape)
 
-
+    # tile = get_stamen_maptile(7700, 13550, 15, "png")
+    #
+    # image = tile.image.convert("RGBA")
+    # arr = np.array(image)
+    # print(arr.shape)
     #
     #
 

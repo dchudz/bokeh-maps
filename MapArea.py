@@ -1,22 +1,17 @@
 import numpy as np
+import requests
 from PIL import Image
 from bokeh.plotting import *
 
-
-class BoundingBox:
-    def __init__(self, min_lon, max_lon, min_lat, max_lat):
+class MapArea:
+    def __init__(self, image, min_lon, max_lon, min_lat, max_lat):
+        self.image = image
         self.min_lon = min_lon
         self.min_lat = min_lat
         self.max_lon = max_lon
         self.max_lat = max_lat
         self.range_lon = max_lon - min_lon
         self.range_lat = max_lat - min_lat
-
-
-class MapArea:
-    def __init__(self, image, bbox):
-        self.image = image
-        self.bbox = bbox
 
 
 def rgba_to_array2d(image):
@@ -33,7 +28,45 @@ def rgba_to_array2d(image):
 def add_maparea_to_plot(p, maparea):
     image_array = rgba_to_array2d(maparea.image)
     rotated_2d = np.rot90(np.transpose(image_array))
-    p.image_rgba(image=[rotated_2d], x=[maparea.bbox.min_lon], y=[maparea.bbox.min_lat], dw=[maparea.bbox.range_lon], dh=[maparea.bbox.range_lat])
+    p.image_rgba(image=[rotated_2d], x=[maparea.min_lon], y=[maparea.min_lat], dw=[maparea.range_lon], dh=[maparea.range_lat])
+
+
+class MapTile(MapArea):
+    def __init__(self, image, x, y, zoom):
+        self.image = image
+        self.x = x
+        self.y = y
+        self.zoom = zoom
+        self.min_lon, self.max_lat = tileaddress_to_lonlat(x, y, zoom)
+        self.max_lon, self.min_lat = tileaddress_to_lonlat(x+1, y+1, zoom)
+        self.range_lon = self.max_lon - self.min_lon
+        self.range_lat = self.max_lat - self.min_lat
+
+
+def get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com/toner/{0}/{1}/{2}.{3}"):
+    url = url_format.format(zoom, x, y, file_extension)
+    print(url)
+    response = requests.get(url)
+    with io.BytesIO(response.content) as response_io:
+        image = Image.open(response_io).convert("RGBA") # in watercolor example jpg image was RGB. Convert all to RGBA so we're dealing w/ a standard array shape
+    return MapTile(image, x, y, zoom)
+
+
+def get_stamen_maptile(x, y, zoom, type = "watercolor", file_extension = "jpg"):
+    # TODO: make it convenient to access other stamen tile types
+    return get_maptile(x, y, zoom, file_extension, url_format = "http://tile.stamen.com/watercolor/{0}/{1}/{2}.{3}")
+
+def get_google_maptile(x, y, zoom):
+    return get_maptile(x, y, zoom, "", url_format="http://mt0.google.com/vt/lyrs=m@169000000&hl=en&x={1}&y={2}&z={0}&s=Ga")
+
+# adapted from XYtoLatLon in ggmap package
+def tileaddress_to_lonlat(tileaddress_x, tileaddress_y, zoom):
+    n = 2**zoom
+    lon = tileaddress_x / n * 360.0 - 180.0
+    lat = (180/np.pi) * np.arcsin(np.tanh(np.pi * (1 - 2 * tileaddress_y / n)))
+    # TODO: shift so that pi/2 < lat <= pi/2
+    print(lon,lat)
+    return lon, lat
 
 
 # img = Image.open("images/tile.png").convert('RGBA')
@@ -49,13 +82,27 @@ def add_maparea_to_plot(p, maparea):
 # print(im2)
 
 if __name__=='__main__':
-    output_file("image_example.html")
-    bbox = BoundingBox(10,20,30,40) # this is the wrong bounding box for this tile
-    img = Image.open("images/tile.png").convert('RGBA')
-    maparea = MapArea(img, bbox)
-
-    # If nothing else, we can use x_range and y_range, width, and height, to get the right aspect ratio
-    p = figure(tools = "pan, box_zoom, reset, wheel_zoom", width=500, height=200, x_range=[bbox.min_lon, bbox.max_lon],
-               y_range = [bbox.min_lat,bbox.max_lat])
-    add_maparea_to_plot(p, maparea)
+    output_file("png_to_bokeh_image.html")
+    maparea1 = get_stamen_maptile(7700, 13550, 15, "png")
+    maparea2 = get_stamen_maptile(7700, 13551, 15, "png")
+    p = figure(tools = "pan, box_zoom, reset, wheel_zoom", width=500, height=500,
+               x_range=[maparea1.min_lon, maparea1.max_lon],
+               y_range = [maparea1.min_lat,maparea1.max_lat])
+    add_maparea_to_plot(p, maparea1)
+    add_maparea_to_plot(p, maparea2)
     show(p)
+    img = Image.open("images/tile.jpg").convert('RGBA')
+    arr = np.array(img)
+    print(arr.shape)
+    print(maparea2.min_lon)
+    print(maparea2.max_lon)
+
+    # tile = get_stamen_maptile(7700, 13550, 15, "png")
+    #
+    # image = tile.image.convert("RGBA")
+    # arr = np.array(image)
+    # print(arr.shape)
+    #
+    #
+
+    # print(tileaddress_to_lonlat(7700, 13550, 15))

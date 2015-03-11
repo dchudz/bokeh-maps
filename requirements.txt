@@ -2,3 +2,5 @@ bokeh
 numpy
 Image
 requests
+pandas
+pyproj

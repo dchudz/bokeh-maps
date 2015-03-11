@@ -1,17 +1,14 @@
-# This seems really hacky, but I managed to get a png file I downloaded into a Bokeh plot
-
 from bokeh.plotting import *
 from PIL import Image
 import numpy as np
 import pandas as pd
 import pyproj
+from MapArea import rgba_to_array2d, get_stamen_maptile, add_maparea_to_plot
 
 def get_world_capitals():
     world_capitals = pd.read_html("http://www.lab.lmnixon.org/4th/worldcapitals.html", header=0)[0]
     world_capitals = world_capitals.dropna(axis=0)
     return(world_capitals)
-
-world_capitals = get_world_capitals()
 
 def destring_lat_or_lon(input_str):
     abs_val = float(input_str[:-1])
@@ -21,48 +18,25 @@ def destring_lat_or_lon(input_str):
         output= -1 * abs_val
     return output
 
-world_capitals['lat_numerical'] = world_capitals.Latitude.apply(lambda x: destring_lat_or_lon(x))
-world_capitals['lon_numerical'] = world_capitals.Longitude.apply(lambda x: destring_lat_or_lon((x)))
-
 def convert_lat_lon_to_x_y(lon, lat):
     #output is currently in meters.  Need to convert it to the right units (adjusted degrees?)
+    #tiles.mapbox.com uses EPSG:3857
     web_mercator=pyproj.Proj("+init=EPSG:3857")
     return(web_mercator(lon, lat))
 
-convert_lat_lon_to_x_y(list(world_capitals.lon_numerical), list(world_capitals.lat_numerical))
 
-
-# Convert a map to an array:
-# manipulate the array so the map looks right
-# tile image from: https://a.tiles.mapbox.com/v4/examples.map-i86l3621/0/0/0.png?access_token=pk.eyJ1IjoidHJpc3RlbiIsImEiOiJuZ2E5MG5BIn0.39lpfFC5Nxyqck1qbTNquQ
-# Mapbox uses the Web Mercator projection... commonly referred to as EPSG:900913 or EPSG:3857
-img = Image.open("tile.png").convert('RGBA')
-
-arr = np.array(img)
-=======
-# could use any other image too:
-#img = Image.open("/Users/david/Dropbox/Photos/20150301 - Tahoe/anthonys_camera/20150301_142558.jpg").convert('RGBA')
-
-# We'll want an option for black-and-white. One way to achieve this is to convert image to monochrome and then back to RGBA:
-img_bw = img.convert('L')
-img_bw.save("bw.png")
-img_bw_rgba = img_bw.convert("RGBA")
-
-arr = np.array(img_bw_rgba)
-
-image_2d = np.empty(arr.shape[0:2], dtype=np.uint32)
-view = image_2d.view(dtype=np.uint8).reshape(arr.shape)
-for i in range(arr.shape[0]):
-    for j in range(arr.shape[1]):
-        for k in range(arr.shape[2]):
-            view[i, j, k] = arr[i,j,k]
-
-rotated_2d = np.rot90(np.transpose(image_2d))
+world_capitals = get_world_capitals()
+world_capitals['lat_numerical'] = world_capitals.Latitude.apply(lambda x: destring_lat_or_lon(x))
+world_capitals['lon_numerical'] = world_capitals.Longitude.apply(lambda x: destring_lat_or_lon((x)))
+#convert_lat_lon_to_x_y(list(world_capitals.lon_numerical), list(world_capitals.lat_numerical))
+maparea1 = get_stamen_maptile(4, 6, 4, "jpg")
 output_file("png_to_bokeh_image.html")
-p = figure(x_range=[-180,180], y_range=[-90,90])
 
-p.image_rgba(image=[rotated_2d], x=[-180], y=[-90], dw=[360], dh=[180])
+p = figure(tools = "pan, box_zoom, reset, wheel_zoom", width=500, height=500,
+               x_range=[maparea1.min_lon, maparea1.max_lon],
+               y_range = [maparea1.min_lat,maparea1.max_lat])
 
+add_maparea_to_plot(p, maparea1)
 #plot just washington DC (as test)
 p.rect([-77], [39], width=1, height=1, fill_color="black", fill_alpha=0.7,
     line_color="black")

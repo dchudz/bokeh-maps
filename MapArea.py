@@ -91,18 +91,18 @@ if __name__=='__main__':
     add_maparea_to_plot(p, maparea1)
     add_maparea_to_plot(p, maparea2)
     show(p)
-    img = Image.open("images/tile.jpg").convert('RGBA')
-    arr = np.array(img)
-    print(arr.shape)
+    #img = Image.open("images/tile.jpg").convert('RGBA')
+    #arr = np.array(img)
+    #print(arr.shape)
     print(maparea2.min_lon)
     print(maparea2.max_lon)
 
-    # tile = get_stamen_maptile(7700, 13550, 15, "png")
-    #
-    # image = tile.image.convert("RGBA")
-    # arr = np.array(image)
-    # print(arr.shape)
+    tile = get_stamen_maptile(7700, 13550, 15, "png")
+
+    #image = tile.image.convert("RGBA")
+    #arr = np.array(image)
+    #print(arr.shape)
     #
     #
 
-    # print(tileaddress_to_lonlat(7700, 13550, 15))
+    #print(tileaddress_to_lonlat(7700, 13550, 15))
